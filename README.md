@@ -3,14 +3,12 @@
 使用docker ，快速搭建nginx +php, Mysql , redis ,mongodb ,rabbitmq
 
 一 nginx + php 
-
-
- 1 说明
+ 说明
+ php扩展  imagick curl redis yaf mongo OPCache 
  
-   php扩展  imagick curl redis yaf mongo OPCache 
  2 build
-   cd /path/to/repo/nginx-php
-   docker build -t webserver .  #构建nginx+php 
+ cd /path/to/repo/nginx-php
+ docker build -t webserver .  #构建nginx+php 
  3 run
    docker run -v /path/to/local/web/files:/var/www:rw -p 80:80 -d webserver /sbin/my_init --enable-insecure-key
 二 Mysql
