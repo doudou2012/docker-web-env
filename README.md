@@ -1,8 +1,12 @@
 # docker-web-env
+
 使用docker ，快速搭建nginx +php, Mysql , redis ,mongodb ,rabbitmq
+
 一 nginx + php 
- 使用方法:
+
+
  1 说明
+ 
    php扩展  imagick curl redis yaf mongo OPCache 
  2 build
    cd /path/to/repo/nginx-php
