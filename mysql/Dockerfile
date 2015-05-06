@@ -29,8 +29,8 @@ ADD import_sql.sh /import_sql.sh
 ADD run.sh /run.sh
 RUN chmod 755 /*.sh
 
-ENV MYSQL_USER admin
-ENV MYSQL_PASS **Random**
+ENV MYSQL_USER root 
+ENV MYSQL_PASS modernmedia 
 # Replication ENV
 ENV REPLICATION_MASTER **False**
 ENV REPLICATION_SLAVE **False**
