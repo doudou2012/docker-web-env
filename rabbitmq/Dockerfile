@@ -1,9 +1,14 @@
-#FROM phusion/baseimage:0.9.15
-FROM ubuntu:trusty
-MAINTAINER fanzhanao<fanzhanao@gmail.com>
-ENV DEBIAN_FRONTEND noninteractive
+#
+# RabbitMQ Dockerfile
+#
+# https://github.com/dockerfile/rabbitmq
+#
 
-RUN echo "nameserver 8.8.8.8" | tee /etc/resolv.conf > /dev/null && echo "nameserver 8.8.8.8" | sudo tee /etc/resolvconf/resolv.conf.d/base > /dev/null
+# Pull base image.
+FROM ubuntu:trusty
+
+# Add files.
+ADD bin/rabbitmq-start /usr/local/bin/
 
 RUN echo "deb http://mirrors.163.com/ubuntu/ trusty main restricted universe multiverse" >> /etc/apt/sources.list.d/docker.list && \
 echo "deb http://mirrors.163.com/ubuntu/ trusty-security main restricted universe multiverse" >> /etc/apt/sources.list.d/docker.list && \
@@ -14,31 +19,35 @@ echo "deb-src http://mirrors.163.com/ubuntu/ trusty main restricted universe mul
 echo "deb-src http://mirrors.163.com/ubuntu/ trusty-security main restricted universe multiverse" >> /etc/apt/sources.list.d/docker.list && \
 echo "deb-src http://mirrors.163.com/ubuntu/ trusty-updates main restricted universe multiverse" >> /etc/apt/sources.list.d/docker.list && \
 echo "deb-src http://mirrors.163.com/ubuntu/ trusty-proposed main restricted universe multiverse" >> /etc/apt/sources.list.d/docker.list && \
-echo "deb-src http://mirrors.163.com/ubuntu/ trusty-backports main restricted universe multiverse" >> /etc/apt/sources.list.d/docker.list 
+echo "deb-src http://mirrors.163.com/ubuntu/ trusty-backports main restricted universe multiverse" >> /etc/apt/sources.list.d/docker.list
 
-RUN apt-get update &&  apt-get -y --force-yes install mysql-server pwgen && \
-  rm -rf /var/lib/apt/lists/*
-#删除之前安装的mysql
-RUN rm -rf /var/lib/mysql/*
-#删除syslog配置
-RUN rm /etc/mysql/conf.d/mysqld_safe_syslog.cnf
-ADD my.cnf /etc/mysql/conf.d/my.cnf
-ADD mysqld_charset.cnf /etc/mysql/conf.d/mysqld_charset.cnf
+RUN apt-get update
+RUN apt-get install -y wget
 
-#mysql脚本
-ADD import_sql.sh /import_sql.sh
-ADD run.sh /run.sh
-RUN chmod 755 /*.sh
+# Install RabbitMQ.
+RUN \
+  wget -qO - https://www.rabbitmq.com/rabbitmq-signing-key-public.asc | apt-key add - && \
+  echo "deb http://www.rabbitmq.com/debian/ testing main" > /etc/apt/sources.list.d/rabbitmq.list && \
+  apt-get update && \
+  DEBIAN_FRONTEND=noninteractive apt-get install -y rabbitmq-server && \
+  rm -rf /var/lib/apt/lists/* && \
+  rabbitmq-plugins enable rabbitmq_management && \
+  echo "[{rabbit, [{loopback_users, []}]}]." > /etc/rabbitmq/rabbitmq.config && \
+  chmod +x /usr/local/bin/rabbitmq-start
 
-ENV MYSQL_USER root 
-ENV MYSQL_PASS modernmedia 
-# Replication ENV
-ENV REPLICATION_MASTER **False**
-ENV REPLICATION_SLAVE **False**
-ENV REPLICATION_USER replica
-ENV REPLICATION_PASS replica
+# Define environment variables.
+ENV RABBITMQ_LOG_BASE /data/log
+ENV RABBITMQ_MNESIA_BASE /data/mnesia
 
-VOLUME  ["/etc/mysql", "/var/lib/mysql"]
+# Define mount points.
+VOLUME ["/data/log", "/data/mnesia"]
 
-EXPOSE 3306
-CMD ["/run.sh"]
+# Define working directory.
+WORKDIR /data
+
+# Define default command.
+CMD ["rabbitmq-start"]
+
+# Expose ports.
+EXPOSE 5672
+EXPOSE 15672
